@@ -6,7 +6,6 @@ import (
 	"syscall"
 
 	"github.com/chatex-com/process-manager"
-	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/MarySmirnova/pereval/internal/config"
 	"github.com/MarySmirnova/pereval/internal/rest"
@@ -18,7 +17,7 @@ type Application struct {
 	cfg     config.Application
 	manager *process.Manager
 
-	db *pgxpool.Pool
+	db *database.Storage
 }
 
 func NewApplication(cfg config.Application) (*Application, error) {
@@ -58,12 +57,12 @@ func (a *Application) initDatabase() error {
 		return err
 	}
 
-	a.db = db.GetPGXpool()
+	a.db = db
 	return nil
 }
 
 func (a *Application) bootstrapRestWorker() error {
-	worker := rest.NewWorker(a.cfg.REST)
+	worker := rest.NewWorker(a.cfg.REST, a.db)
 	a.manager.AddWorker(process.NewServerWorker("httpServer", worker.GetHTTPServer()))
 
 	return nil
@@ -75,7 +74,7 @@ func (a *Application) Run() {
 }
 
 func (a *Application) registerShutdown() {
-	defer a.db.Close()
+	defer a.db.GetPGXpool().Close()
 
 	go func() {
 		<-a.sigChan
