@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 
@@ -53,12 +55,21 @@ func (s *Storage) SubmitData(data *data.Pereval) (id int, err error) {
 	dateAdded := data.AddTime
 
 	for _, img := range data.Images {
+		file, err := http.Get(img.URL)
+		if err != nil {
+			return 0, err
+		}
+		body, err := ioutil.ReadAll(file.Body)
+		if err != nil {
+			return 0, err
+		}
+
 		qu := fmt.Sprintf(`INSERT INTO public.pereval_images (date_added, img)
-		VALUES ('%s', pg_read_file('%s')::bytea)
-		RETURNING id;`, dateAdded, img.URL)
+		VALUES ('%s', '%v'::bytea)
+		RETURNING id;`, dateAdded, body)
 
 		image := &models.Image{}
-		err := tx.QueryRow(ctx, qu).Scan(&image.IDimg)
+		err = tx.QueryRow(ctx, qu).Scan(&image.IDimg)
 		if err != nil {
 			return 0, err
 		}
@@ -86,7 +97,7 @@ func (s *Storage) SubmitData(data *data.Pereval) (id int, err error) {
 	}
 
 	query := `INSERT INTO public.pereval_added (date_added, raw_data, images, status)
-	VALUES ($1, $2, $3, new)
+	VALUES ($1, $2, $3, 'new')
 	RETURNING id;`
 
 	err = tx.QueryRow(ctx, query, dateAdded, jsonData, jsonImg).Scan(&id)
