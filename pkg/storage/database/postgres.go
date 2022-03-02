@@ -1,18 +1,16 @@
 package database
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/MarySmirnova/pereval/internal/config"
 	"github.com/MarySmirnova/pereval/internal/data"
-	"github.com/MarySmirnova/pereval/pkg/storage/models"
 )
 
 var ctx context.Context = context.Background()
@@ -42,10 +40,7 @@ func (s *Storage) GetPGXpool() *pgxpool.Pool {
 	return s.db
 }
 
-func (s *Storage) SubmitData(data *data.Pereval) (id int, err error) {
-	var rawData *models.Pereval
-	var images []*models.Image
-
+func (s *Storage) SubmitData(data *data.Pereval, imgs *data.Images) (id int, err error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return 0, err
@@ -54,12 +49,12 @@ func (s *Storage) SubmitData(data *data.Pereval) (id int, err error) {
 
 	dateAdded := data.AddTime
 
-	for _, img := range data.Images {
+	for _, img := range imgs.Img {
 		file, err := http.Get(img.URL)
 		if err != nil {
 			return 0, err
 		}
-		body, err := ioutil.ReadAll(file.Body)
+		body, err := io.ReadAll(file.Body)
 		if err != nil {
 			return 0, err
 		}
@@ -68,30 +63,17 @@ func (s *Storage) SubmitData(data *data.Pereval) (id int, err error) {
 		VALUES ('%s', '%v'::bytea)
 		RETURNING id;`, dateAdded, body)
 
-		image := &models.Image{}
-		err = tx.QueryRow(ctx, qu).Scan(&image.IDimg)
+		err = tx.QueryRow(ctx, qu).Scan(&img.IDimg)
 		if err != nil {
 			return 0, err
 		}
-		image.Title = img.Title
-		image.URL = img.URL
-		images = append(images, image)
 	}
 
-	conv, err := json.Marshal(data)
+	jsonImg, err := json.Marshal(imgs)
 	if err != nil {
 		return 0, err
 	}
-	err = json.NewDecoder(bytes.NewBuffer(conv)).Decode(&rawData)
-	if err != nil {
-		return 0, err
-	}
-
-	jsonImg, err := json.Marshal(images)
-	if err != nil {
-		return 0, err
-	}
-	jsonData, err := json.Marshal(rawData)
+	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return 0, err
 	}
