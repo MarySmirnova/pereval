@@ -1,14 +1,11 @@
 package rest
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/MarySmirnova/pereval/internal/config"
-	"github.com/MarySmirnova/pereval/internal/data"
 	"github.com/MarySmirnova/pereval/pkg/storage/database"
 )
 
@@ -23,7 +20,11 @@ func NewWorker(cfg config.REST, storage *database.Storage) *Worker {
 	}
 
 	handler := mux.NewRouter()
-	handler.Name("submit_data").Methods(http.MethodPost).Path("/submitData").HandlerFunc(wr.submitDataHandler)
+	handler.Name("put_data").Methods(http.MethodPost).Path("/submitData").HandlerFunc(wr.putDataHandler)
+	handler.Name("get_status").Methods(http.MethodGet).Path("/submitData/:id/status").HandlerFunc(wr.getStatusHandler)
+	handler.Name("change_data").Methods(http.MethodPut).Path("/submitData/:id").HandlerFunc(wr.changeDataHandler)
+	handler.Name("get_all_data").Methods(http.MethodGet).Path("/submitData/").HandlerFunc(wr.getAllDataHandler)
+	handler.Name("get_data").Methods(http.MethodGet).Path("/submitData/:id").HandlerFunc(wr.getDataHandler)
 
 	wr.httpServer = &http.Server{
 		Addr:         cfg.Listen,
@@ -37,32 +38,4 @@ func NewWorker(cfg config.REST, storage *database.Storage) *Worker {
 
 func (wr *Worker) GetHTTPServer() *http.Server {
 	return wr.httpServer
-}
-
-func (wr *Worker) submitDataHandler(w http.ResponseWriter, r *http.Request) {
-	var pereval *data.Pereval
-
-	err := json.NewDecoder(r.Body).Decode(&pereval)
-	if err != nil {
-		log.WithError(err).Warn("unable to parse the request") // TODO: prepare public error description
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	id, err := wr.storage.SubmitData(pereval)
-	if err != nil {
-		log.WithError(err).Warn("unable to added data to DB") // TODO: prepare public error description
-		http.Error(w, err.Error(), http.StatusServiceUnavailable)
-		return
-	}
-
-	jsonID, err := json.Marshal(id)
-	if err != nil {
-		log.WithError(err).Warn("unable to parse response") // TODO: prepare public error description
-		http.Error(w, err.Error(), http.StatusServiceUnavailable)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(jsonID)
 }
