@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 
@@ -40,33 +38,16 @@ func (s *Storage) GetPGXpool() *pgxpool.Pool {
 	return s.db
 }
 
-func (s *Storage) SubmitData(data *data.Pereval, imgs *data.Images) (id int, err error) {
-	tx, err := s.db.Begin(ctx)
+func (s *Storage) PutDataToDB(data *data.Pereval, imgs *data.Images) (id int, err error) {
+	t, err := s.NewTXpg()
 	if err != nil {
 		return 0, err
 	}
-	defer tx.Rollback(ctx)
+	defer t.tx.Rollback(ctx)
 
-	dateAdded := data.AddTime
-
-	for _, img := range imgs.Img {
-		file, err := http.Get(img.URL)
-		if err != nil {
-			return 0, err
-		}
-		body, err := io.ReadAll(file.Body)
-		if err != nil {
-			return 0, err
-		}
-
-		qu := fmt.Sprintf(`INSERT INTO public.pereval_images (date_added, img)
-		VALUES ('%s', '%v'::bytea)
-		RETURNING id;`, dateAdded, body)
-
-		err = tx.QueryRow(ctx, qu).Scan(&img.IDimg)
-		if err != nil {
-			return 0, err
-		}
+	err = t.putImages(data, imgs)
+	if err != nil {
+		return 0, err
 	}
 
 	jsonImg, err := json.Marshal(imgs)
@@ -82,11 +63,41 @@ func (s *Storage) SubmitData(data *data.Pereval, imgs *data.Images) (id int, err
 	VALUES ($1, $2, $3, 'new')
 	RETURNING id;`
 
-	err = tx.QueryRow(ctx, query, dateAdded, jsonData, jsonImg).Scan(&id)
+	err = t.tx.QueryRow(ctx, query, data.AddTime, jsonData, jsonImg).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
 
-	tx.Commit(ctx)
+	t.tx.Commit(ctx)
 	return id, nil
+}
+
+func (s *Storage) GetStatusFromDB(id int) (string, error) {
+	t, err := s.NewTXpg()
+	if err != nil {
+		return "", err
+	}
+	defer t.tx.Rollback(ctx)
+
+	status, err := t.getStatus(id)
+	t.tx.Commit(ctx)
+	return status, err
+}
+
+func (s *Storage) UpdateDataToDB(id int) error {
+	t, err := s.NewTXpg()
+	if err != nil {
+		return err
+	}
+	defer t.tx.Rollback(ctx)
+
+	status, err := t.getStatus(id)
+	if err != nil {
+		return err
+	}
+	if status != "new" {
+		return fmt.Errorf("wrong status: %s", status)
+	}
+
+	return nil
 }
