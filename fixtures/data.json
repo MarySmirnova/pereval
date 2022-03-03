@@ -6,7 +6,9 @@
     "connect": "", 
    
     "add_time": "2021-09-22 13:18:13",
-    "user": {}, 
+    "user": {
+        "email": "mar@ex.ru"
+    }, 
    
     "coords":{
         "latitude": "45.3842",

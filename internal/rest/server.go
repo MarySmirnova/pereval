@@ -20,11 +20,11 @@ func NewWorker(cfg config.REST, storage *database.Storage) *Worker {
 	}
 
 	handler := mux.NewRouter()
-	handler.Name("put_data").Methods(http.MethodPost).Path("/submitData").HandlerFunc(wr.putDataHandler)
-	handler.Name("get_status").Methods(http.MethodGet).Path("/submitData/:id/status").HandlerFunc(wr.getStatusHandler)
-	handler.Name("change_data").Methods(http.MethodPut).Path("/submitData/:id").HandlerFunc(wr.changeDataHandler)
+	handler.Name("post_data").Methods(http.MethodPost).Path("/submitData").HandlerFunc(wr.postDataHandler)
+	handler.Name("get_status").Methods(http.MethodGet).Path("/submitData/{id:[0-9]+}/status").HandlerFunc(wr.getStatusHandler)
+	handler.Name("change_data").Methods(http.MethodPut).Path("/submitData/{id:[0-9]+}").HandlerFunc(wr.changeDataHandler)
 	handler.Name("get_all_data").Methods(http.MethodGet).Path("/submitData/").HandlerFunc(wr.getAllDataHandler)
-	handler.Name("get_data").Methods(http.MethodGet).Path("/submitData/:id").HandlerFunc(wr.getDataHandler)
+	handler.Name("get_data").Methods(http.MethodGet).Path("/submitData/{id:[0-9]+}").HandlerFunc(wr.getDataHandler)
 
 	wr.httpServer = &http.Server{
 		Addr:         cfg.Listen,
