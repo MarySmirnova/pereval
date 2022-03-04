@@ -14,7 +14,6 @@ import (
 //putDataHandler - добавить в базу данные, вернуть id записи (pereval).
 func (wr *Worker) postDataHandler(w http.ResponseWriter, r *http.Request) {
 	var pereval data.Pereval
-	var images data.Images
 
 	body, _ := io.ReadAll(r.Body)
 
@@ -24,20 +23,14 @@ func (wr *Worker) postDataHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = json.Unmarshal(body, &images)
-	if err != nil {
-		log.WithError(err).Warn("unable to parse the request") // TODO: prepare public error description
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
-	if err = data.Validate(&pereval, &images); err != nil {
+	if err = data.Validate(&pereval); err != nil {
 		log.WithError(err).Warn(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	id, err := wr.storage.PutDataToDB(&pereval, &images)
+	id, err := wr.storage.PutDataToDB(body)
 	if err != nil {
 		log.WithError(err).Warn("unable to added data to DB") // TODO: prepare public error description
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
