@@ -8,10 +8,12 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/MarySmirnova/pereval/internal/config"
-	"github.com/MarySmirnova/pereval/internal/data"
+	"github.com/MarySmirnova/pereval/pkg/storage/models"
 )
 
 var ctx context.Context = context.Background()
+
+const statusNew string = "new"
 
 type Storage struct {
 	db *pgxpool.Pool
@@ -38,32 +40,31 @@ func (s *Storage) GetPGXpool() *pgxpool.Pool {
 	return s.db
 }
 
-func (s *Storage) PutDataToDB(data *data.Pereval, imgs *data.Images) (id int, err error) {
+func (s *Storage) PutDataToDB(data []byte) (int, error) {
+	var pereval models.Pereval
+	var imgs models.Images
+
+	err := json.Unmarshal(data, &pereval)
+	if err != nil {
+		return 0, err
+	}
+	err = json.Unmarshal(data, &imgs)
+	if err != nil {
+		return 0, err
+	}
+
 	t, err := s.NewTXpg()
 	if err != nil {
 		return 0, err
 	}
 	defer t.tx.Rollback(ctx)
 
-	err = t.putImages(data, imgs)
+	imgAdded, err := t.putImages(&pereval, &imgs)
 	if err != nil {
 		return 0, err
 	}
 
-	jsonImg, err := json.Marshal(imgs)
-	if err != nil {
-		return 0, err
-	}
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return 0, err
-	}
-
-	query := `INSERT INTO public.pereval_added (date_added, raw_data, images, status)
-	VALUES ($1, $2, $3, 'new')
-	RETURNING id;`
-
-	err = t.tx.QueryRow(ctx, query, data.AddTime, jsonData, jsonImg).Scan(&id)
+	id, err := t.putData(&pereval, imgAdded)
 	if err != nil {
 		return 0, err
 	}
@@ -95,7 +96,7 @@ func (s *Storage) UpdateDataToDB(id int) error {
 	if err != nil {
 		return err
 	}
-	if status != "new" {
+	if status != statusNew {
 		return fmt.Errorf("wrong status: %s", status)
 	}
 
