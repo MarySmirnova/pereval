@@ -181,3 +181,8 @@ func (s *Storage) GetDataFromDB(id int) (*data.Pereval, error) {
 	t.tx.Commit(ctx)
 	return &pereval, nil
 }
+
+func (s *Storage) GetAllDataFromDB() ([]*data.Pereval, error) {
+
+	return nil, nil
+}
