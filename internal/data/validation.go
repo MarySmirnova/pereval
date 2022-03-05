@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func Validate(data *Pereval, imgs *Images) error {
+func Validate(data *Pereval) error {
 	if data.Title == "" {
 		return fmt.Errorf("pass must be specified")
 	}
@@ -15,12 +15,12 @@ func Validate(data *Pereval, imgs *Images) error {
 		return fmt.Errorf("coordinates must be specified")
 	}
 
-	if len(imgs.Img) == 0 || imgs.Img[0].URL == "" {
-		return fmt.Errorf("please add a photo")
-	}
-
 	if !validEmail(data.User.Email) {
 		return fmt.Errorf("invalid email entered")
+	}
+
+	if !vlaidImgs(data) {
+		return fmt.Errorf("please add a photo")
 	}
 
 	return nil
@@ -38,4 +38,16 @@ func validCoords(coords ...string) bool {
 		}
 	}
 	return true
+}
+
+func vlaidImgs(data *Pereval) bool {
+	for _, imgs := range data.Img {
+		for _, img := range imgs {
+			if img.URL != "" {
+				return true
+			}
+		}
+	}
+
+	return false
 }

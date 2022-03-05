@@ -28,6 +28,12 @@ func init() {
 	process.SetLogger(NewPMLogger())
 }
 
+// @title Pereval API
+// @version 1.0
+// @description API Server for Pereval Application
+
+// @host localhost:8080
+// @BasePath /
 func main() {
 	app, err := internal.NewApplication(cfg)
 	if err != nil {

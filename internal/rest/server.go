@@ -4,9 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/MarySmirnova/pereval/internal/config"
 	"github.com/MarySmirnova/pereval/pkg/storage/database"
+
+	_ "github.com/MarySmirnova/pereval/docs"
 )
 
 type Worker struct {
@@ -25,6 +28,13 @@ func NewWorker(cfg config.REST, storage *database.Storage) *Worker {
 	handler.Name("change_data").Methods(http.MethodPut).Path("/submitData/{id:[0-9]+}").HandlerFunc(wr.changeDataHandler)
 	handler.Name("get_all_data").Methods(http.MethodGet).Path("/submitData/").HandlerFunc(wr.getAllDataHandler)
 	handler.Name("get_data").Methods(http.MethodGet).Path("/submitData/{id:[0-9]+}").HandlerFunc(wr.getDataHandler)
+
+	handler.PathPrefix("/swagger").Handler(httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("none"),
+		httpSwagger.DomID("#swagger-ui"),
+	))
 
 	wr.httpServer = &http.Server{
 		Addr:         cfg.Listen,
