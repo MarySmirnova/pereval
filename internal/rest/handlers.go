@@ -75,8 +75,33 @@ func (wr *Worker) getStatusHandler(w http.ResponseWriter, r *http.Request) {
 //changeDataHandler - отредактировать существующую запись (замена), если она в статусе new.
 //Редактировать можно все поля, кроме ФИО, почта, телефон.
 func (wr *Worker) changeDataHandler(w http.ResponseWriter, r *http.Request) {
-	//	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
+	var pereval data.Pereval
+
+	body, _ := io.ReadAll(r.Body)
+
+	err := json.Unmarshal(body, &pereval)
+	if err != nil {
+		log.WithError(err).Warn("unable to parse the request") // TODO: prepare public error description
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err = data.Validate(&pereval); err != nil {
+		log.WithError(err).Warn(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = wr.storage.UpdateDataToDB(id, body)
+	if err != nil {
+		log.WithError(err).Warn("unable to update data to DB") // TODO: prepare public error description
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 //getAllDataHandler - список всех данных для отображения, которые этот пользователь отправил на сервер
@@ -96,7 +121,14 @@ func (wr *Worker) getDataHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	perevalJson, err := json.Marshal(pereval)
+	if err != nil {
+		log.WithError(err).Warn("unable to parse response") // TODO: prepare public error description
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(pereval)
+	_, _ = w.Write(perevalJson)
 }

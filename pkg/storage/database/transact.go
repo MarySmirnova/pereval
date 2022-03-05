@@ -114,7 +114,7 @@ func (t *TXpg) getData(id int) ([]byte, error) {
 	return data, nil
 }
 
-func (t *TXpg) getImages(id int) (*models.ImgsAdded, error) {
+func (t *TXpg) getImagesID(id int) (*models.ImgsAdded, error) {
 	query := fmt.Sprintf(`SELECT images
 	FROM public.pereval_added
 	WHERE id = %d;`, id)
@@ -154,6 +154,44 @@ func (t *TXpg) convertImages(imgMap *models.ImgsAdded, pereval *data.Pereval) er
 			}
 			image.ID = id
 		}
+	}
+
+	return nil
+}
+
+func (t *TXpg) delImages(oldImgs *models.ImgsAdded) error {
+	query := `DELETE FROM public.pereval_images
+	WHERE id = $1`
+
+	for _, imgID := range *oldImgs {
+		for _, id := range imgID {
+			_, err := t.tx.Exec(ctx, query, id)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (t *TXpg) updateData(data *models.Pereval, imgs *models.ImgsAdded, id int) error {
+	jsonImg, err := json.Marshal(imgs)
+	if err != nil {
+		return err
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	query := `UPDATE public.pereval_added
+	SET date_added = $1, raw_data = $2, images = $3
+	WHERE id = $4;`
+
+	_, err = t.tx.Exec(ctx, query, data.AddTime, jsonData, jsonImg, id)
+	if err != nil {
+		return err
 	}
 
 	return nil
