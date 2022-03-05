@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/MarySmirnova/pereval/internal/data"
 	"github.com/MarySmirnova/pereval/pkg/storage/models"
 	"github.com/jackc/pgx/v4"
 )
@@ -25,15 +26,18 @@ func (s *Storage) NewTXpg() (*TXpg, error) {
 	}, nil
 }
 
-func (t *TXpg) putImages(data *models.Pereval, imgs *models.Images) (*models.ImgsAdded, error) {
+func (t *TXpg) putImages(data *models.Pereval, images *models.Images) (*models.ImgsAdded, error) {
 	imgsAdded := make(models.ImgsAdded)
 	dateAdded := data.AddTime
 
-	for _, img := range imgs.Img {
-		imgsAdded[img.Title] = []int{}
+	for key, imgs := range images.Img {
+		imgsAdded[key] = []int{}
 
-		for _, url := range img.URL {
-			file, err := http.Get(url)
+		for _, img := range imgs {
+			if img.URL == "" {
+				continue
+			}
+			file, err := http.Get(img.URL)
 			if err != nil {
 				return nil, err
 			}
@@ -42,16 +46,16 @@ func (t *TXpg) putImages(data *models.Pereval, imgs *models.Images) (*models.Img
 				return nil, err
 			}
 
-			qu := fmt.Sprintf(`INSERT INTO public.pereval_images (date_added, img)
-			VALUES ('%s', '%v'::bytea)
-			RETURNING id;`, dateAdded, body)
+			qu := fmt.Sprintf(`INSERT INTO public.pereval_images (date_added, img, title)
+			VALUES ('%s', '%v'::bytea, '%s')
+			RETURNING id;`, dateAdded, body, img.Title)
 
 			var id int
 			err = t.tx.QueryRow(ctx, qu).Scan(&id)
 			if err != nil {
 				return nil, err
 			}
-			imgsAdded[img.Title] = append(imgsAdded[img.Title], id)
+			imgsAdded[key] = append(imgsAdded[key], id)
 		}
 	}
 
@@ -93,4 +97,64 @@ func (t *TXpg) getStatus(id int) (string, error) {
 		return "", err
 	}
 	return status, nil
+}
+
+func (t *TXpg) getData(id int) ([]byte, error) {
+	query := fmt.Sprintf(`SELECT raw_data
+	FROM public.pereval_added
+	WHERE id = %d;`, id)
+
+	var data []byte
+	row := t.tx.QueryRow(ctx, query)
+	err := row.Scan(&data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func (t *TXpg) getImages(id int) (*models.ImgsAdded, error) {
+	query := fmt.Sprintf(`SELECT images
+	FROM public.pereval_added
+	WHERE id = %d;`, id)
+
+	imgMap := make(models.ImgsAdded)
+	var imgJson []byte
+	row := t.tx.QueryRow(ctx, query)
+	err := row.Scan(&imgJson)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(imgJson, &imgMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return &imgMap, nil
+}
+
+func (t *TXpg) convertImages(imgMap *models.ImgsAdded, pereval *data.Pereval) error {
+	query := `SELECT img, title
+	FROM public.pereval_images
+	WHERE id = $1`
+
+	for key, imgID := range *imgMap {
+		if _, ok := pereval.Img[key]; !ok {
+			pereval.Img[key] = []*data.Image{}
+		}
+		for _, id := range imgID {
+			image := data.Image{}
+			pereval.Img[key] = append(pereval.Img[key], &image)
+
+			row := t.tx.QueryRow(ctx, query, id)
+			err := row.Scan(&image.Img, &image.Title)
+			if err != nil {
+				return err
+			}
+			image.ID = id
+		}
+	}
+
+	return nil
 }

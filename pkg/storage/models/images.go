@@ -1,12 +1,12 @@
 package models
 
 type Images struct {
-	Img []*Image `json:"images"`
+	Img map[string][]*Image `json:"images"`
 }
 
 type Image struct {
-	URL   []string `json:"url"`
-	Title string   `json:"title"`
+	URL   string `json:"url"`
+	Title string `json:"title"`
 }
 
 type ImgsAdded map[string][]int

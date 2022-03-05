@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/MarySmirnova/pereval/internal/config"
+	"github.com/MarySmirnova/pereval/internal/data"
 	"github.com/MarySmirnova/pereval/pkg/storage/models"
 )
 
@@ -101,4 +102,42 @@ func (s *Storage) UpdateDataToDB(id int) error {
 	}
 
 	return nil
+}
+
+func (s *Storage) GetDataFromDB(id int) ([]byte, error) {
+	t, err := s.NewTXpg()
+	if err != nil {
+		return nil, err
+	}
+
+	dat, err := t.getData(id)
+	if err != nil {
+		return nil, err
+	}
+
+	imgsID, err := t.getImages(id)
+	if err != nil {
+		return nil, err
+	}
+
+	pereval := data.Pereval{
+		Img: make(map[string][]*data.Image),
+	}
+
+	err = json.Unmarshal(dat, &pereval)
+	if err != nil {
+		return nil, err
+	}
+
+	err = t.convertImages(imgsID, &pereval)
+	if err != nil {
+		return nil, err
+	}
+
+	perevalJson, err := json.Marshal(pereval)
+	if err != nil {
+		return nil, err
+	}
+
+	return perevalJson, nil
 }

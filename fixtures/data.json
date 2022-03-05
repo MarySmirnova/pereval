@@ -24,35 +24,35 @@
         "autumn": "1A",
         "spring": ""
     },
-   
-    "images": [
-        {
-            "url":[
-                "https://ichef.bbci.co.uk/news/640/cpsprodpb/14A82/production/_116301648_gettyimages-1071204136.jpg", 
-                "https://n1s1.hsmedia.ru/7a/4c/a2/7a4ca299075440b4125144dcd1f0803b/640x480_0xac120003_20437001301575960343.jpg"
-            ],
-            "title":"sedlo"
-        },      
-        {
-            "url":[
-                "https://scientificrussia.ru/images/b/teb-full.jpg", 
-                "https://ic.pics.livejournal.com/moonflower512/84697056/45540/45540_760.jpg"
-            ],
-            "title":"Nord"
-        }, 
-        {
-            "url": null, 
-            "title":"West"
-        }, 
-        {
-            "url":[
-                "https://cs11.pikabu.ru/post_img/2019/02/04/12/1549312329147951618.jpg"
-            ],
-            "title":"South"
-        }, 
-        {
-            "url":[],
-            "title":"East"
-        }
-    ]
+
+    "images": {
+            "sedlo": [
+                        {
+                        "url": "https://ichef.bbci.co.uk/news/640/cpsprodpb/14A82/production/_116301648_gettyimages-1071204136.jpg", 
+                        "title": "PHOTO1 Podiom"
+                        },
+                        {
+                        "url": "https://n1s1.hsmedia.ru/7a/4c/a2/7a4ca299075440b4125144dcd1f0803b/640x480_0xac120003_20437001301575960343.jpg",
+                        "title": "GRRRRRR DRDRDR"
+                        }                
+                    ],
+            "nord": [
+                        {
+                        "url": "https://scientificrussia.ru/images/b/teb-full.jpg", 
+                        "title": "ZLOST"
+                        },
+                        {
+                        "url": "https://ic.pics.livejournal.com/moonflower512/84697056/45540/45540_760.jpg",
+                        "title":"ETO FOTO"
+                        }
+                    ],
+            "west": null,
+            "south": [
+                        {
+                        "url": "https://cs11.pikabu.ru/post_img/2019/02/04/12/1549312329147951618.jpg",
+                        "title":"truba"
+                        }
+                    ],
+            "east": []
+            }
 }

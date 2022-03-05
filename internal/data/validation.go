@@ -41,9 +41,11 @@ func validCoords(coords ...string) bool {
 }
 
 func vlaidImgs(data *Pereval) bool {
-	for _, img := range data.Img {
-		if len(img.URL) != 0 {
-			return true
+	for _, imgs := range data.Img {
+		for _, img := range imgs {
+			if img.URL != "" {
+				return true
+			}
 		}
 	}
 

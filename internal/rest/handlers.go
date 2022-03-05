@@ -87,6 +87,16 @@ func (wr *Worker) getAllDataHandler(w http.ResponseWriter, r *http.Request) {
 
 //getDataHandler - получить одну запись (перевал) по её id.
 func (wr *Worker) getDataHandler(w http.ResponseWriter, r *http.Request) {
-	//	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
+	pereval, err := wr.storage.GetDataFromDB(id)
+	if err != nil {
+		log.WithError(err).Warn("incorrect parameter id") // TODO: prepare public error description
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(pereval)
 }
