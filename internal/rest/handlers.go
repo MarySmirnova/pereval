@@ -12,7 +12,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-//putDataHandler - добавить в базу данные, вернуть id записи (pereval).
+// @Summary Post New Pereval
+// @Tags Pereval API
+// @Description post new entry
+// @ID post_data
+// @Accept  json
+// @Produce  json
+// @Param input body data.Pereval true "pereval info"
+// @Success 200 {integer} integer 1
+// @Router /submitData [post]
 func (wr *Worker) postDataHandler(w http.ResponseWriter, r *http.Request) {
 	var pereval data.Pereval
 
@@ -50,7 +58,14 @@ func (wr *Worker) postDataHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(jsonID)
 }
 
-//getStatusHandler - получить статус модерации отправленных данных.
+// @Summary Get Pereval Status
+// @Tags Pereval API
+// @Description returns the status of the entry
+// @ID get_status
+// @Produce  json
+// @Param id path int true "id"
+// @Success 200 {string} string 1
+// @Router /submitData/{id}/status [get]
 func (wr *Worker) getStatusHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
@@ -73,8 +88,15 @@ func (wr *Worker) getStatusHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(jsonStatus)
 }
 
-//changeDataHandler - отредактировать существующую запись (замена), если она в статусе new.
-//Редактировать можно все поля, кроме ФИО, почта, телефон.
+// @Summary Change Pereval
+// @Tags Pereval API
+// @Description all fields can be edited except email, phone, full name
+// @ID update_data
+// @Accept  json
+// @Param id path int true "id"
+// @Param input body data.Pereval true "pereval info"
+// @Success 200
+// @Router /submitData/{id} [put]
 func (wr *Worker) changeDataHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
@@ -105,8 +127,18 @@ func (wr *Worker) changeDataHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-//getAllDataHandler - список всех данных для отображения, которые этот пользователь отправил на сервер
-//через приложение с возможностью фильтрации по данным пользователя (ФИО, телефон, почта), если передан объект.
+// @Summary Get All Data From User
+// @Tags Pereval API
+// @Description returns all user records (at least one parameter is required)
+// @ID get_all_data
+// @Produce  json
+// @Param email query string false "email"
+// @Param phone query string false "phone"
+// @Param fam query string false "fam"
+// @Param name query string false "name"
+// @Param otc query string false "otc"
+// @Success 200 {object} data.AllPereval
+// @Router /submitData/ [get]
 func (wr *Worker) getAllDataHandler(w http.ResponseWriter, r *http.Request) {
 	paramsKeys := []string{"email", "phone", "fam", "name", "otc"}
 	userParams := make(map[string]string)
@@ -143,7 +175,14 @@ func (wr *Worker) getAllDataHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(perevalJson)
 }
 
-//getDataHandler - получить одну запись (перевал) по её id.
+// @Summary Get Pereval
+// @Tags Pereval API
+// @Description get a record by its id
+// @ID get_data
+// @Produce  json
+// @Param id path integer true "id"
+// @Success 200 {object} data.Pereval
+// @Router /submitData/{id} [get]
 func (wr *Worker) getDataHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 

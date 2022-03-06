@@ -1,9 +1,212 @@
 basePath: /
+definitions:
+  data.Coords:
+    properties:
+      height:
+        type: string
+      latitude:
+        type: string
+      longitude:
+        type: string
+    type: object
+  data.Image:
+    properties:
+      id:
+        type: integer
+      img:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
+      url:
+        type: string
+    type: object
+  data.Level:
+    properties:
+      autumn:
+        type: string
+      spring:
+        type: string
+      summer:
+        type: string
+      winter:
+        type: string
+    type: object
+  data.Pereval:
+    properties:
+      add_time:
+        type: string
+      beautyTitle:
+        type: string
+      connect:
+        type: string
+      coords:
+        $ref: '#/definitions/data.Coords'
+      id:
+        type: string
+      images:
+        additionalProperties:
+          items:
+            $ref: '#/definitions/data.Image'
+          type: array
+        type: object
+      level:
+        $ref: '#/definitions/data.Level'
+      other_titles:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+      user:
+        $ref: '#/definitions/data.User'
+    type: object
+  data.User:
+    properties:
+      email:
+        type: string
+      fam:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      otc:
+        type: string
+      phone:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
   description: API Server for Pereval Application
   title: Pereval API
   version: "1.0"
-paths: {}
+paths:
+  /submitData:
+    post:
+      consumes:
+      - application/json
+      description: post new entry
+      operationId: post_data
+      parameters:
+      - description: pereval info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/data.Pereval'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+      summary: Post New Pereval
+      tags:
+      - Pereval API
+  /submitData/:
+    get:
+      description: returns all user records (at least one parameter is required)
+      operationId: get_all_data
+      parameters:
+      - description: email
+        in: query
+        name: email
+        type: string
+      - description: phone
+        in: query
+        name: phone
+        type: string
+      - description: fam
+        in: query
+        name: fam
+        type: string
+      - description: name
+        in: query
+        name: name
+        type: string
+      - description: otc
+        in: query
+        name: otc
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/data.Pereval'
+            type: array
+      summary: Get All Data From User
+      tags:
+      - Pereval API
+  /submitData/{id}:
+    get:
+      description: get a record by its id
+      operationId: get_data
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/data.Pereval'
+      summary: Get Pereval
+      tags:
+      - Pereval API
+    put:
+      consumes:
+      - application/json
+      description: all fields can be edited except email, phone, full name
+      operationId: update_data
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: pereval info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/data.Pereval'
+      responses:
+        "200":
+          description: ""
+      summary: Change Pereval
+      tags:
+      - Pereval API
+  /submitData/{id}/status:
+    get:
+      description: returns the status of the entry
+      operationId: get_status
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get Pereval Status
+      tags:
+      - Pereval API
 swagger: "2.0"

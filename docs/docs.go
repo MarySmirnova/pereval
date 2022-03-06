@@ -15,7 +15,316 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/submitData": {
+            "post": {
+                "description": "post new entry",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pereval API"
+                ],
+                "summary": "Post New Pereval",
+                "operationId": "post_data",
+                "parameters": [
+                    {
+                        "description": "pereval info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/data.Pereval"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "/submitData/": {
+            "get": {
+                "description": "returns all user records (at least one parameter is required)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pereval API"
+                ],
+                "summary": "Get All Data From User",
+                "operationId": "get_all_data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "email",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "phone",
+                        "name": "phone",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "fam",
+                        "name": "fam",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "otc",
+                        "name": "otc",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/data.Pereval"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/submitData/{id}": {
+            "get": {
+                "description": "get a record by its id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pereval API"
+                ],
+                "summary": "Get Pereval",
+                "operationId": "get_data",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/data.Pereval"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "all fields can be edited except email, phone, full name",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pereval API"
+                ],
+                "summary": "Change Pereval",
+                "operationId": "update_data",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "pereval info",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/data.Pereval"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/submitData/{id}/status": {
+            "get": {
+                "description": "returns the status of the entry",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pereval API"
+                ],
+                "summary": "Get Pereval Status",
+                "operationId": "get_status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "data.Coords": {
+            "type": "object",
+            "properties": {
+                "height": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "string"
+                },
+                "longitude": {
+                    "type": "string"
+                }
+            }
+        },
+        "data.Image": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "img": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "data.Level": {
+            "type": "object",
+            "properties": {
+                "autumn": {
+                    "type": "string"
+                },
+                "spring": {
+                    "type": "string"
+                },
+                "summer": {
+                    "type": "string"
+                },
+                "winter": {
+                    "type": "string"
+                }
+            }
+        },
+        "data.Pereval": {
+            "type": "object",
+            "properties": {
+                "add_time": {
+                    "type": "string"
+                },
+                "beautyTitle": {
+                    "type": "string"
+                },
+                "connect": {
+                    "type": "string"
+                },
+                "coords": {
+                    "$ref": "#/definitions/data.Coords"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/data.Image"
+                        }
+                    }
+                },
+                "level": {
+                    "$ref": "#/definitions/data.Level"
+                },
+                "other_titles": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/data.User"
+                }
+            }
+        },
+        "data.User": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fam": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "otc": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it

@@ -7,7 +7,9 @@
    
     "add_time": "2021-09-22 13:18:13",
     "user": {
-        "email": "mar@ex.ru"
+        "email": "mar@ex.ru",
+        "phone": "678909876",
+        "name": "luka"
     }, 
    
     "coords":{

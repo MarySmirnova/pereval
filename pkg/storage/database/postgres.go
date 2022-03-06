@@ -41,6 +41,7 @@ func (s *Storage) GetPGXpool() *pgxpool.Pool {
 	return s.db
 }
 
+// PutDataToDB - добавить в базу данные, вернуть id записи (pereval)
 func (s *Storage) PutDataToDB(data []byte) (int, error) {
 	var pereval models.Pereval
 	var imgs models.Images
@@ -74,6 +75,7 @@ func (s *Storage) PutDataToDB(data []byte) (int, error) {
 	return id, nil
 }
 
+//GetStatusFromDB - получить статус модерации отправленных данных.
 func (s *Storage) GetStatusFromDB(id int) (string, error) {
 	t, err := s.NewTXpg()
 	if err != nil {
@@ -86,6 +88,8 @@ func (s *Storage) GetStatusFromDB(id int) (string, error) {
 	return status, err
 }
 
+//UpdateDataToDB - отредактировать существующую запись (замена), если она в статусе new.
+//Редактировать можно все поля, кроме ФИО, почта, телефон.
 func (s *Storage) UpdateDataToDB(id int, data []byte) error {
 	var pereval models.Pereval
 	var imgs models.Images
@@ -147,6 +151,7 @@ func (s *Storage) UpdateDataToDB(id int, data []byte) error {
 	return nil
 }
 
+//GetDataFromDB - получить одну запись (перевал) по её id.
 func (s *Storage) GetDataFromDB(id int) (*data.Pereval, error) {
 	t, err := s.NewTXpg()
 	if err != nil {
@@ -163,6 +168,8 @@ func (s *Storage) GetDataFromDB(id int) (*data.Pereval, error) {
 	return pereval, nil
 }
 
+//GetAllDataFromDB - список всех данных для отображения, которые этот пользователь отправил на сервер
+//через приложение с возможностью фильтрации по данным пользователя (ФИО, телефон, почта), если передан объект.
 func (s *Storage) GetAllDataFromDB(userParams map[string]string) ([]*data.Pereval, error) {
 	t, err := s.NewTXpg()
 	if err != nil {
@@ -175,12 +182,19 @@ func (s *Storage) GetAllDataFromDB(userParams map[string]string) ([]*data.Pereva
 		return nil, err
 	}
 
-	selectPereval := []*data.Pereval{}
+	var selectPereval data.AllPereval
 	for _, id := range ids {
 		pereval, err := t.getPereval(id)
 		if err != nil {
 			return nil, err
 		}
+
+		status, err := t.getStatus(id)
+		if err != nil {
+			return nil, err
+		}
+
+		pereval.Status = status
 		selectPereval = append(selectPereval, pereval)
 	}
 
