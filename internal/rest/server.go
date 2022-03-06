@@ -30,7 +30,7 @@ func NewWorker(cfg config.REST, storage *database.Storage) *Worker {
 	handler.Name("get_data").Methods(http.MethodGet).Path("/submitData/{id:[0-9]+}").HandlerFunc(wr.getDataHandler)
 
 	handler.PathPrefix("/swagger").Handler(httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+		httpSwagger.URL("http://178.154.220.204:8080/swagger/doc.json"),
 		httpSwagger.DeepLinking(true),
 		httpSwagger.DocExpansion("none"),
 		httpSwagger.DomID("#swagger-ui"),
