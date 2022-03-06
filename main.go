@@ -32,7 +32,7 @@ func init() {
 // @version 1.0
 // @description API Server for Pereval Application
 
-// @host localhost:8080
+// @host 178.154.220.204:8080
 // @BasePath /
 func main() {
 	app, err := internal.NewApplication(cfg)

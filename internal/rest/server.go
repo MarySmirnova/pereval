@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -29,8 +30,9 @@ func NewWorker(cfg config.REST, storage *database.Storage) *Worker {
 	handler.Name("get_all_data").Methods(http.MethodGet).Path("/submitData/").HandlerFunc(wr.getAllDataHandler)
 	handler.Name("get_data").Methods(http.MethodGet).Path("/submitData/{id:[0-9]+}").HandlerFunc(wr.getDataHandler)
 
+	swagConnString := fmt.Sprintf("http://%s%s/swagger/doc.json", cfg.Host, cfg.Listen)
 	handler.PathPrefix("/swagger").Handler(httpSwagger.Handler(
-		httpSwagger.URL("http://178.154.220.204:8080/swagger/doc.json"),
+		httpSwagger.URL(swagConnString),
 		httpSwagger.DeepLinking(true),
 		httpSwagger.DocExpansion("none"),
 		httpSwagger.DomID("#swagger-ui"),
