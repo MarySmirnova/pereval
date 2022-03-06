@@ -6,7 +6,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:8080",
+    "host": "178.154.220.204:8080",
     "basePath": "/",
     "paths": {
         "/submitData": {
