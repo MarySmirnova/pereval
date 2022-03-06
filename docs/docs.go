@@ -18,7 +18,7 @@ const docTemplate = `{
     "paths": {
         "/submitData": {
             "post": {
-                "description": "post new entry",
+                "description": "post new entry. Valid e-mail, coordinates and url values must be entered",
                 "consumes": [
                     "application/json"
                 ],

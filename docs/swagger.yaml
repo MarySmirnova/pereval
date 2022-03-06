@@ -90,7 +90,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: post new entry
+      description: post new entry. Valid e-mail, coordinates and url values must be
+        entered
       operationId: post_data
       parameters:
       - description: pereval info

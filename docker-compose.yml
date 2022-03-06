@@ -1,0 +1,36 @@
+version: '3.1'
+
+volumes:
+  pg_data:
+  init_database:
+
+services:
+
+  postgresql:
+    image: postgres
+    container_name: postgresql
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: $FSTR_DB_LOGIN
+      POSTGRES_DB: $FSTR_DB_DATABASE
+      POSTGRES_PASSWORD: $FSTR_DB_PASS
+      POSTGRES_PORT: $FSTR_DB_PORT
+    volumes:
+      - ./init_database/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - pg_data:$HOME/docker/volumes/postgres
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+
+  pereval_api:
+    container_name: pereval
+    build: .
+    command: ./application
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgresql

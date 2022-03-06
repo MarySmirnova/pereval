@@ -14,7 +14,7 @@ import (
 
 // @Summary Post New Pereval
 // @Tags Pereval API
-// @Description post new entry
+// @Description post new entry. Valid e-mail, coordinates and url values must be entered
 // @ID post_data
 // @Accept  json
 // @Produce  json
